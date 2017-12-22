@@ -103,7 +103,7 @@ public class App extends Application {
 				confirm.setPositiveText("Removed!");
 				confirm.setPositiveListener(new ClickListener() {
 					@Override
-					public void onClick(Component c, int mouseButton) {
+					public void onClick(int mouseX, int mouseY, int mouseButton) {
 						server.removePaste(p.user, p.getId());
 					}
 				});
