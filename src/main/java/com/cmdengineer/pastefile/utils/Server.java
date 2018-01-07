@@ -1,14 +1,21 @@
-package com.cmdengineer.pastefile;
+package com.cmdengineer.pastefile.utils;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.JScrollPane;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.omg.Messaging.SYNC_WITH_TRANSPORT;
 
-import com.cmdengineer.pastefile.utils.HTTPRequestAPI;
-import com.cmdengineer.pastefile.utils.Paste;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+
+import net.minecraft.nbt.JsonToNBT;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import scala.util.parsing.json.JSON;
 
 public class Server {
 
@@ -45,8 +52,17 @@ public class Server {
 	public Paste getPaste(String id){
 		Paste p = null;
 		try {
-			System.out.println(http.get(url + id));
 			p = new Paste(http.get(url + id));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return p;
+	}
+	
+	public Paste getPaste(String user, String id){
+		Paste p = null;
+		try {
+			p = new Paste(user, http.get(url + id));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -119,12 +135,56 @@ public class Server {
 	public int getAmount(String user){
 		int amount = -1;
 		try {
-			amount = Integer.parseInt(http.get(url + "get/" + user));
+			String listAsString = http.get(url + "get/" + user);
+			listAsString = listAsString.replaceAll("[", "").replaceAll("]", "").replaceAll(".txt", "").replaceAll("\"", "");
+			String[] list = listAsString.split(",");
+			amount = list.length;
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return amount;
+	}
+	
+	public List<Paste> getPastes(String user){
+		List<Paste> pastes = new ArrayList<Paste>();
+		try {
+			String listAsString = http.get(url + "get/" + user);
+			listAsString = listAsString.replace("[", "").replace("]", "").replaceAll(".txt", "").replaceAll("\"", "");
+			if(listAsString.contains(",")){
+				String[] list = listAsString.split(",");
+				for(String paste : list){
+					Paste p = getPaste(user, paste);
+					p.setId(paste);
+					pastes.add(p);
+				}
+			}else if(listAsString.length() == 8){
+				Paste p = getPaste(user, listAsString);
+				p.setId(listAsString);
+				pastes.add(p);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return pastes;
+	}
+	
+	public List<Paste> getPastes(){
+		List<Paste> pastes = new ArrayList<Paste>();
+		try {
+			String listAsString = http.get(url + "get");
+
+			listAsString = listAsString.replace("[", "").replace("]", "").replaceAll(".txt", "").replaceAll("\"", "");
+			String[] list = listAsString.split(",");
+			for(String paste : list){
+				Paste p = getPaste(paste);
+				p.setId(paste);
+				pastes.add(p);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return pastes;
 	}
 }

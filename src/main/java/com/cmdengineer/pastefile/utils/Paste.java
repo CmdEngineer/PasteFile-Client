@@ -12,11 +12,13 @@ public class Paste {
 	public NBTTagCompound info;
 	public NBTTagCompound data;
 	private String id;
+	private File file;
 	
 	public Paste(String user, File file){
 		this.user = user;
 		this.info = new NBTTagCompound();
 		this.data = new NBTTagCompound();
+		this.file = file;
 		if(file != null && !file.isFolder()){
 			info.setString("user", user);
 			info.setString("name", file.getName());
@@ -31,6 +33,7 @@ public class Paste {
 		this.info = info;
 		this.data = data;
 		this.user = user;
+		this.file = new File(this.info.getString("name"), this.info.getString("app"), this.data);
 	}
 	
 	public Paste(NBTTagCompound info, NBTTagCompound  data){
@@ -38,6 +41,7 @@ public class Paste {
 		this.data = new NBTTagCompound();
 		this.info = info;
 		this.data = data;
+		this.file = new File(this.info.getString("name"), this.info.getString("app"), this.data);
 	}
 	
 	public Paste(String fromServer){
@@ -45,21 +49,35 @@ public class Paste {
 		this.data = new NBTTagCompound();
 		try {
 			String[] content = fromServer.split("<=Data=>");
-			System.out.println("INFO: " + content[0]);
-			System.out.println("DATA: " + content[1]);
 			this.data = JsonToNBT.getTagFromJson(content[1]);
 			this.info = JsonToNBT.getTagFromJson(content[0]);
+			this.file = new File(this.info.getString("name"), this.info.getString("app"), this.data);
 		} catch (NBTException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public Paste(String info, String data){
+	public Paste(String user, String fromServer){
+		this.info = new NBTTagCompound();
+		this.data = new NBTTagCompound();
+		this.user = user;
+		try {
+			String[] content = fromServer.split("<=Data=>");
+			this.data = JsonToNBT.getTagFromJson(content[1]);
+			this.info = JsonToNBT.getTagFromJson(content[0]);
+			this.file = new File(this.info.getString("name"), this.info.getString("app"), this.data);
+		} catch (NBTException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public Paste(int mode, String info, String data){
 		this.info = new NBTTagCompound();
 		this.data = new NBTTagCompound();
 		try {
 			this.data = JsonToNBT.getTagFromJson(data);
 			this.info = JsonToNBT.getTagFromJson(info);
+			this.file = new File(this.info.getString("name"), this.info.getString("app"), this.data);
 		} catch (NBTException e) {
 			e.printStackTrace();
 		}
@@ -68,15 +86,27 @@ public class Paste {
 	public Paste(String user, String info, String data){
 		this.info = new NBTTagCompound();
 		this.data = new NBTTagCompound();
+		this.user = user;
 		try {
 			this.data = JsonToNBT.getTagFromJson(data);
 			this.info = JsonToNBT.getTagFromJson(info);
+			this.file = new File(this.info.getString("name"), this.info.getString("app"), this.data);
 		} catch (NBTException e) {
 			e.printStackTrace();
 		}
-		this.user = user;
 	}
 	
+	@Override
+	public String toString() {
+		if(file != null && !file.isFolder()){
+			return file.getName();	
+		}
+		if(info != null){
+			return info.getString("name");	
+		}
+		return "Unknown.";
+	}
+
 	public String getId() {
 		return id;
 	}
@@ -84,5 +114,12 @@ public class Paste {
 	public void setId(String id) {
 		this.id = id;
 	}
+	
+	public File getFile() {
+		return file;
+	}
 
+	public void setFile(File file) {
+		this.file = file;
+	}
 }
