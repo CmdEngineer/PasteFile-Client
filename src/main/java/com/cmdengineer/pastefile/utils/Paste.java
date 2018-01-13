@@ -53,7 +53,7 @@ public class Paste {
 			this.info = JsonToNBT.getTagFromJson(content[0]);
 			this.file = new File(this.info.getString("name"), this.info.getString("app"), this.data);
 		} catch (NBTException e) {
-			e.printStackTrace();
+
 		}
 	}
 	
@@ -67,7 +67,7 @@ public class Paste {
 			this.info = JsonToNBT.getTagFromJson(content[0]);
 			this.file = new File(this.info.getString("name"), this.info.getString("app"), this.data);
 		} catch (NBTException e) {
-			e.printStackTrace();
+
 		}
 	}
 	
@@ -79,7 +79,7 @@ public class Paste {
 			this.info = JsonToNBT.getTagFromJson(info);
 			this.file = new File(this.info.getString("name"), this.info.getString("app"), this.data);
 		} catch (NBTException e) {
-			e.printStackTrace();
+
 		}
 	}
 	
@@ -92,7 +92,7 @@ public class Paste {
 			this.info = JsonToNBT.getTagFromJson(info);
 			this.file = new File(this.info.getString("name"), this.info.getString("app"), this.data);
 		} catch (NBTException e) {
-			e.printStackTrace();
+
 		}
 	}
 	

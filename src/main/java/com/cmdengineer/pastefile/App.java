@@ -83,9 +83,10 @@ public class App extends Application {
 	 */
 	ItemList<Paste> itmPastes;
 	
+	
 	@Override
 	public void init() {
-		server = new Server("http://localhost:3001/");
+		server = new Server("http://35.176.212.251:3001/");
 		
 		pastes = server.getPastes(Minecraft.getMinecraft().player.getUniqueID().toString());
 		hasSelected = false;
@@ -101,7 +102,9 @@ public class App extends Application {
 		});
 		
 		// txfUser
-		txfUserWidth = (int)(Minecraft.getMinecraft().player.getName().length() * 9) % (width/2);
+		txfUserWidth = 3 + Icons.USER.getGridWidth() + Minecraft.getMinecraft().fontRenderer.getStringWidth(Minecraft.getMinecraft().player.getName());
+		txfUserWidth %= width/2;
+		//txfUserWidth = (int)(Minecraft.getMinecraft().player.getName().length() * 9) % (width/2);
 		txfUser = new TextField(0, 0, txfUserWidth); 
 		txfUser.setEditable(false);
 		txfUser.setIcon(Icons.USER);
@@ -196,7 +199,23 @@ public class App extends Application {
 	
 	private void btnEditPress(int mouseX, int mouseY, int mouseButton){
 		if(hasSelected){
-			server.editPaste(itmPastes.getSelectedItem().getId(), itmPastes.getSelectedItem());
+			Dialog.Input dialog = new Dialog.Input("Please enter a Paste ID: ");
+			openDialog(dialog);
+			dialog.setResponseHandler(new Dialog.ResponseHandler<String>() {
+				@Override
+				public boolean onResponse(boolean success, String str) {
+					if(success) {
+						if(str.length() == 8 && str.matches("[a-zA-Z0-9]*"))
+						{
+							Paste p = server.getPaste(str);
+							if(p.getFile() != null){
+								server.editPaste(itmPastes.getSelectedItem().getId(), p);
+							}
+						}
+					}
+					return true;
+				}
+			});
 		}
 	}
 	
@@ -208,37 +227,59 @@ public class App extends Application {
 			hasSelected = false;
 			btnRemove.setEnabled(false);
 			btnEdit.setEnabled(false);
+			btnRefreshPress(mouseX, mouseY, mouseButton);
 		}
 	}
 	
 	private void btnImportPress(int mouseX, int mouseY, int mouseButton){
-		
+		Dialog.Input dialog = new Dialog.Input("Please enter a Paste ID: ");
+		openDialog(dialog);
+		dialog.setResponseHandler(new Dialog.ResponseHandler<String>() {
+			@Override
+			public boolean onResponse(boolean success, String str) {
+				if(success) {
+					if(str.length() == 8 && str.matches("[a-zA-Z0-9]*"))
+					{
+						Paste p = server.getPaste(str);
+						if(p.getFile() != null){
+							Dialog.SaveFile download = new Dialog.SaveFile(App.this, p.getFile());
+							openDialog(download);
+						}
+					}
+				}
+				return true;
+			}
+		});
 	}
 
 	private void btnExportPress(int mouseX, int mouseY, int mouseButton){
-		Dialog.OpenFile dialog = new Dialog.OpenFile(App.this);
-		openDialog(dialog);
-		dialog.setResponseHandler(new Dialog.ResponseHandler<File>() {
-			@Override
-			public boolean onResponse(boolean success, File file) {
-				if(success){
-					Dialog.Confirmation confirm = new Dialog.Confirmation("Are you sure you want to upload " + file.getName() + "?");
-					openDialog(confirm);
-					confirm.setPositiveText("Uploaded!");
-					confirm.setPositiveListener(new ClickListener() {
-						@Override
-						public void onClick(int mouseX, int mouseY, int mouseButton) {
-							Paste p = new Paste(Minecraft.getMinecraft().player.getUniqueID().toString(), file);
-							p.setId(server.postPaste(p));
-							Dialog.Message showID = new Dialog.Message("Your paste id is: " + p.getId());
-							openDialog(showID);
-							dialog.close();
-						}
-					});
+		try{
+			Dialog.OpenFile dialog = new Dialog.OpenFile(App.this);
+			openDialog(dialog);
+			dialog.setResponseHandler(new Dialog.ResponseHandler<File>() {
+				@Override
+				public boolean onResponse(boolean success, File file) {
+					if(success){
+						Dialog.Confirmation confirm = new Dialog.Confirmation("Are you sure you want to upload " + file.getName() + "?");
+						openDialog(confirm);
+						confirm.setPositiveText("Uploaded!");
+						confirm.setPositiveListener(new ClickListener() {
+							@Override
+							public void onClick(int mouseX, int mouseY, int mouseButton) {
+								Paste p = new Paste(Minecraft.getMinecraft().player.getUniqueID().toString(), file);
+								p.setId(server.postPaste(p));
+								Dialog.Message showID = new Dialog.Message("Your paste id is: " + p.getId());
+								openDialog(showID);
+								dialog.close();
+							}
+						});
+					}
+					return false;
 				}
-				return false;
-			}
-		});
+			});
+		}catch(Exception e){
+			System.out.println("PasteFile | an error occured.");
+		}
 	}
 	
 	@Override
